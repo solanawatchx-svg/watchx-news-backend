@@ -8,7 +8,7 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-const PORT = 3000;
+const PORT = 3001;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const REFRESH_SECRET_KEY = process.env.REFRESH_SECRET_KEY || "dipesh6366";
 const CACHE_FILE = "cache.json";
