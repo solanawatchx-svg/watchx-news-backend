@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Solana Core Developers Address Network Congestion with New Software Release",
+    "content": "Solana's core development teams are rolling out critical updates aimed at alleviating recent network congestion and improving transaction finality. These patches are designed to optimize the network's handling of high demand, ensuring a smoother experience for users and dApp developers.",
+    "source_url": "https://solana.com/news/network-upgrade-april-2024",
+    "event_date": "2024-04-23"
+  },
+  {
+    "title": "Solana DeFi Ecosystem Continues Expansion, Total Value Locked (TVL) Sees Steady Growth",
+    "content": "The Solana decentralized finance (DeFi) landscape is showing robust signs of expansion, with several new protocols launching and existing platforms attracting more liquidity. This steady increase in Total Value Locked (TVL) indicates growing confidence and utility within Solana's high-speed DeFi sector.",
+    "source_url": "https://defionllama.com/solana-tvl-report-april-2024",
+    "event_date": "2024-04-22"
+  },
+  {
+    "title": "Solana NFT Market Sees Resurgence, New Collections Drive Trading Volume",
+    "content": "Solana's non-fungible token (NFT) market is experiencing a notable resurgence, marked by increased trading volumes and the successful launch of several high-profile new collections. This renewed interest highlights Solana's continued strength as a platform for digital collectibles and cultural assets.",
+    "source_url": "https://magiceden.io/solana-nft-report-q2-2024",
+    "event_date": "2024-04-21"
+  }
+]
