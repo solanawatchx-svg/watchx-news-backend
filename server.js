@@ -6,7 +6,6 @@ import cors from "cors";
 import 'dotenv/config';
 
 const app = express();
-app.use(express.json());
 
 // ✅ Enable CORS only for your domains
 app.use(cors({
@@ -17,6 +16,8 @@ app.use(cors({
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
