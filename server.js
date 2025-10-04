@@ -5,6 +5,11 @@ import dotenv from "dotenv";
 import cors from "cors";
 import 'dotenv/config';
 
+// Add at the top of server.js, after your imports:
+import SerpApi from "google-search-results-nodejs";
+const SERP_API_KEY = process.env.SERP_API_KEY; // Add your key in .env
+const client = new SerpApi.GoogleSearch(SERP_API_KEY);
+
 const app = express();
 app.use(express.json());
 
@@ -25,66 +30,25 @@ try {
   cache = [];
 }
 
-// --- Function to fetch Solana news from Gemini ---
+// --- Fetch Solana news from SerpAPI ---
 async function fetchSolanaNews() {
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-  const messages = [
-    {
-      role: "system",
-      content: "You are a crypto news AI. Generate Solana news updates in JSON format."
-    },
-    {
-      role: "user",
-      content: `
-Generate 3 latest Solana news updates in JSON format.
-Each news should include:
-- title
-- content (2-3 sentences)
-- source_url
-- event_date (use today's date: ${today})
-Return ONLY a valid JSON array, no extra text or formatting.
-`
-    }
-  ];
-
-  try {
-    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${GEMINI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages,
-        temperature: 0.7
-      })
+  return new Promise((resolve, reject) => {
+    client.json({
+      q: "Solana blockchain news",
+      tbm: "nws",   // news search
+      num: 5        // number of results
+    }, (data) => {
+      if (!data.news_results) return resolve([]);
+      const today = new Date().toISOString().split("T")[0];
+      const news = data.news_results.map(item => ({
+        title: item.title,
+        content: item.snippet,
+        source_url: item.link,
+        event_date: today
+      }));
+      resolve(news);
     });
-
-    const data = await res.json();
-
-    if (data.choices && data.choices[0]?.message?.content) {
-      let content = data.choices[0].message.content;
-      content = content.replace(/```json/i, "").replace(/```/g, "").trim();
-
-      try {
-        let news = JSON.parse(content);
-
-        // Force today's date for each news item
-        news = news.map(item => ({ ...item, event_date: today }));
-        return news;
-      } catch (err) {
-        console.error("Failed to parse Gemini output as JSON:", err);
-        return [];
-      }
-    } else {
-      console.error("Gemini returned no content.");
-      return [];
-    }
-  } catch (err) {
-    console.error("Error calling Gemini API:", err);
-    return [];
-  }
+  });
 }
 
 // --- Refresh cache function ---
