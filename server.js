@@ -8,14 +8,7 @@ import 'dotenv/config';
 const app = express();
 
 // ✅ Enable CORS only for your domains
-app.use(cors({
-  origin: [
-    "https://solanawatchx.site",
-    "https://www.solanawatchx.site"
-  ],
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+app.use(cors());
 
 app.use(express.json());
 
