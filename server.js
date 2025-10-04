@@ -6,10 +6,6 @@ import cors from "cors";
 import 'dotenv/config';
 
 const app = express();
-
-// ✅ Enable CORS only for your domains
-app.use(cors());
-
 app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
@@ -31,6 +27,7 @@ try {
 
 // --- Function to fetch Solana news from Gemini ---
 async function fetchSolanaNews() {
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
   const messages = [
     {
       role: "system",
@@ -44,7 +41,7 @@ Each news should include:
 - title
 - content (2-3 sentences)
 - source_url
-- event_date (YYYY-MM-DD)
+- event_date (use today's date: ${today})
 Return ONLY a valid JSON array, no extra text or formatting.
 `
     }
@@ -65,18 +62,17 @@ Return ONLY a valid JSON array, no extra text or formatting.
     });
 
     const data = await res.json();
-    console.log("=== Gemini Raw Output ===");
-    console.log(JSON.stringify(data, null, 2));
-    console.log("=========================");
 
     if (data.choices && data.choices[0]?.message?.content) {
       let content = data.choices[0].message.content;
-
-      // Remove ```json or ``` wrappers
       content = content.replace(/```json/i, "").replace(/```/g, "").trim();
 
       try {
-        return JSON.parse(content);
+        let news = JSON.parse(content);
+
+        // Force today's date for each news item
+        news = news.map(item => ({ ...item, event_date: today }));
+        return news;
       } catch (err) {
         console.error("Failed to parse Gemini output as JSON:", err);
         return [];
@@ -106,6 +102,16 @@ async function refreshCache() {
 
 // --- Auto-refresh every 3 hours ---
 setInterval(refreshCache, 3 * 60 * 60 * 1000);
+
+// --- CORS ---
+app.use(cors({
+  origin: [
+    "https://solanawatchx.site",
+    "https://www.solanawatchx.site"
+  ],
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 // --- Endpoints ---
 app.get("/solana-news", (req, res) => {
