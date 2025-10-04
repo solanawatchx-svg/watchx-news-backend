@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import 'dotenv/config';
 
-import { SerpApi } from 'serpapi';
+import SerpApi from "google-search-results-nodejs";
 const client = new SerpApi.GoogleSearch(process.env.SERP_API_KEY);
 
 const app = express();
@@ -32,19 +32,21 @@ async function fetchSolanaNews() {
   return new Promise((resolve, reject) => {
     client.json(
       {
-        q: 'Solana blockchain news',
-        tbm: 'nws',
+        q: "Solana blockchain news",
+        tbm: "nws", // news
         num: 5,
       },
       (data) => {
         if (!data.news_results) return resolve([]);
-        const today = new Date().toISOString().split('T')[0];
-        const news = data.news_results.map((item) => ({
-          title: item.title,
-          content: item.snippet,
-          source_url: item.link,
-          event_date: today,
-        }));
+        const news = data.news_results.map((item) => {
+          const event_date = item.date || new Date().toISOString().split("T")[0];
+          return {
+            title: item.title,
+            content: item.snippet,
+            source_url: item.link,
+            event_date,
+          };
+        });
         resolve(news);
       }
     );
