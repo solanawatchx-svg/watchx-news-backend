@@ -2,7 +2,7 @@ import express from "express";
 import fs from "fs";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
-
+import cors from "cors";
 import 'dotenv/config';
 
 const app = express();
@@ -104,6 +104,14 @@ async function refreshCache() {
 setInterval(refreshCache, 3 * 60 * 60 * 1000);
 
 // --- Endpoints ---
+app.use(cors({
+  origin: [
+    "https://solanawatchx.site",
+    "https://www.solanawatchx.site"
+  ],
+  methods: ["GET", "POST"]
+}));
+
 app.get("/solana-news", (req, res) => {
   if (cache.length === 0) {
     return res.status(400).json({ error: "Cache not ready, please refresh first." });
