@@ -5,10 +5,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import 'dotenv/config';
 
-// Add at the top of server.js, after your imports:
-import SerpApi from "google-search-results-nodejs";
-const SERP_API_KEY = process.env.SERP_API_KEY; // Add your key in .env
-const client = new SerpApi.GoogleSearch(SERP_API_KEY);
+import { SerpApi } from 'serpapi';
+const client = new SerpApi.GoogleSearch(process.env.SERP_API_KEY);
 
 const app = express();
 app.use(express.json());
@@ -30,30 +28,32 @@ try {
   cache = [];
 }
 
-// --- Fetch Solana news from SerpAPI ---
 async function fetchSolanaNews() {
   return new Promise((resolve, reject) => {
-    client.json({
-      q: "Solana blockchain news",
-      tbm: "nws",   // news search
-      num: 5        // number of results
-    }, (data) => {
-      if (!data.news_results) return resolve([]);
-      const today = new Date().toISOString().split("T")[0];
-      const news = data.news_results.map(item => ({
-        title: item.title,
-        content: item.snippet,
-        source_url: item.link,
-        event_date: today
-      }));
-      resolve(news);
-    });
+    client.json(
+      {
+        q: 'Solana blockchain news',
+        tbm: 'nws',
+        num: 5,
+      },
+      (data) => {
+        if (!data.news_results) return resolve([]);
+        const today = new Date().toISOString().split('T')[0];
+        const news = data.news_results.map((item) => ({
+          title: item.title,
+          content: item.snippet,
+          source_url: item.link,
+          event_date: today,
+        }));
+        resolve(news);
+      }
+    );
   });
 }
 
 // --- Refresh cache function ---
 async function refreshCache() {
-  console.log("🔄 Refreshing Gemini Solana news...");
+  console.log("🔄 Refreshing Solana news...");
   const news = await fetchSolanaNews();
   if (news.length > 0) {
     cache = news;
@@ -100,3 +100,4 @@ app.listen(PORT, () => {
   console.log(`✅ Backend running at http://localhost:${PORT}`);
   refreshCache(); // refresh once on startup
 });
+
