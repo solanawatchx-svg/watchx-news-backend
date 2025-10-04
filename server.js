@@ -5,8 +5,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import 'dotenv/config';
 
-import SerpApi from "google-search-results-nodejs";
-const client = new SerpApi.GoogleSearch(process.env.SERP_API_KEY);
+import SerpApi from "serpapi";
 
 const app = express();
 app.use(express.json());
@@ -29,28 +28,29 @@ try {
 }
 
 async function fetchSolanaNews() {
-  return new Promise((resolve, reject) => {
-    client.json(
-      {
-        q: "Solana blockchain news",
-        tbm: "nws", // news
-        num: 5,
-      },
-      (data) => {
-        if (!data.news_results) return resolve([]);
-        const news = data.news_results.map((item) => {
-          const event_date = item.date || new Date().toISOString().split("T")[0];
-          return {
-            title: item.title,
-            content: item.snippet,
-            source_url: item.link,
-            event_date,
-          };
-        });
-        resolve(news);
-      }
-    );
-  });
+  try {
+    const params = {
+      q: "latest Solana news",
+      tbm: "nws",
+      num: 3,
+      hl: "en",
+      api_key: process.env.SERP_API_KEY
+    };
+    const results = await SerpApi.search(params);
+
+    // Map results into your desired JSON format
+    const news = results.news_results.map(item => ({
+      title: item.title,
+      content: item.snippet,
+      source_url: item.link,
+      event_date: item.date
+    }));
+
+    return news;
+  } catch (err) {
+    console.error("Error fetching Solana news from SerpApi:", err);
+    return [];
+  }
 }
 
 // --- Refresh cache function ---
