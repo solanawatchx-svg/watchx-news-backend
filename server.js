@@ -109,7 +109,8 @@ app.use(cors({
     "https://solanawatchx.site",
     "https://www.solanawatchx.site"
   ],
-  methods: ["GET", "POST"]
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.get("/solana-news", (req, res) => {
