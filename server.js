@@ -8,6 +8,16 @@ import 'dotenv/config';
 const app = express();
 app.use(express.json());
 
+// ✅ Enable CORS only for your domains
+app.use(cors({
+  origin: [
+    "https://solanawatchx.site",
+    "https://www.solanawatchx.site"
+  ],
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 const PORT = process.env.PORT || 3001;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const REFRESH_SECRET_KEY = process.env.REFRESH_SECRET_KEY || "dipesh6366";
@@ -104,15 +114,6 @@ async function refreshCache() {
 setInterval(refreshCache, 3 * 60 * 60 * 1000);
 
 // --- Endpoints ---
-app.use(cors({
-  origin: [
-    "https://solanawatchx.site",
-    "https://www.solanawatchx.site"
-  ],
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
 app.get("/solana-news", (req, res) => {
   if (cache.length === 0) {
     return res.status(400).json({ error: "Cache not ready, please refresh first." });
