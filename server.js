@@ -44,7 +44,7 @@ async function fetchSolanaNews() {
 
     const results = await getJson(params);
     if (results.news_results && results.news_results.length > 0) {
-      const news = results.news_results.slice(0, 3).map(item => ({
+      const news = results.news_results.slice(0, 4).map(item => ({
         title: item.title,
         content: item.snippet || "",
         source_url: item.link,
@@ -123,7 +123,7 @@ async function refreshCache() {
 }
 
 // --- Auto-refresh every 3 hours ---
-setInterval(refreshCache, 3 * 60 * 60 * 1000);
+setInterval(refreshCache, 12 * 60 * 60 * 1000);
 
 // --- Endpoints ---
 app.get("/solana-news", (req, res) => {
