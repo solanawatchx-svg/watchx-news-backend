@@ -69,7 +69,7 @@ async function fetchSolanaNews() {
     {
       role: "user",
       content: `
-Generate 3 latest Solana news updates in JSON format.
+Generate 4 latest Solana news updates in JSON format.
 Each news should include:
 - title
 - content (2-3 sentences)
