@@ -4,10 +4,13 @@ import fetch from "node-fetch";
 import dotenv from "dotenv";
 import cors from "cors";
 import 'dotenv/config';
-
-import SerpApi from "serpapi";
+import { getJson } from "serpapi";
 
 const app = express();
+
+// ✅ Enable CORS only for your domains
+app.use(cors());
+
 app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
@@ -27,35 +30,88 @@ try {
   cache = [];
 }
 
+// --- Function to fetch Solana news from SerpApi with Gemini fallback ---
 async function fetchSolanaNews() {
+  // Try SerpApi first
   try {
+    console.log("📰 Fetching Solana news from SerpApi...");
     const params = {
-      q: "latest Solana news",
-      tbm: "nws",
-      num: 3,
+      engine: "google_news",
+      q: "Solana crypto",
       hl: "en",
       api_key: process.env.SERP_API_KEY
     };
-    const results = await SerpApi.search(params);
 
-    // Map results into your desired JSON format
-    const news = results.news_results.map(item => ({
-      title: item.title,
-      content: item.snippet,
-      source_url: item.link,
-      event_date: item.date
-    }));
-
-    return news;
+    const results = await getJson(params);
+    if (results.news_results && results.news_results.length > 0) {
+      const news = results.news_results.slice(0, 3).map(item => ({
+        title: item.title,
+        content: item.snippet || "",
+        source_url: item.link,
+        event_date: item.date
+      }));
+      console.log("✅ SerpApi news fetched:", news.length);
+      return news;
+    } else {
+      console.warn("⚠️ SerpApi returned no results, falling back to Gemini...");
+    }
   } catch (err) {
-    console.error("Error fetching Solana news from SerpApi:", err);
-    return [];
+    console.error("❌ Error fetching from SerpApi:", err.message);
   }
+
+  // --- Fallback: use Gemini if SerpApi fails ---
+  console.log("🔄 Falling back to Gemini...");
+  const messages = [
+    {
+      role: "system",
+      content: "You are a crypto news AI. Generate Solana news updates in JSON format."
+    },
+    {
+      role: "user",
+      content: `
+Generate 3 latest Solana news updates in JSON format.
+Each news should include:
+- title
+- content (2-3 sentences)
+- source_url
+- event_date (YYYY-MM-DD)
+Return ONLY a valid JSON array, no extra text or formatting.
+`
+    }
+  ];
+
+  try {
+    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.GEMINI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gemini-2.5-flash",
+        messages,
+        temperature: 0.7
+      })
+    });
+
+    const data = await res.json();
+    if (data.choices && data.choices[0]?.message?.content) {
+      let content = data.choices[0].message.content;
+      content = content.replace(/```json/i, "").replace(/```/g, "").trim();
+
+      return JSON.parse(content);
+    }
+  } catch (err) {
+    console.error("Error calling Gemini fallback:", err);
+  }
+
+  return [];
 }
+
 
 // --- Refresh cache function ---
 async function refreshCache() {
-  console.log("🔄 Refreshing Solana news...");
+  console.log("🔄 Refreshing Gemini Solana news...");
   const news = await fetchSolanaNews();
   if (news.length > 0) {
     cache = news;
@@ -68,16 +124,6 @@ async function refreshCache() {
 
 // --- Auto-refresh every 3 hours ---
 setInterval(refreshCache, 3 * 60 * 60 * 1000);
-
-// --- CORS ---
-app.use(cors({
-  origin: [
-    "https://solanawatchx.site",
-    "https://www.solanawatchx.site"
-  ],
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
 
 // --- Endpoints ---
 app.get("/solana-news", (req, res) => {
@@ -102,4 +148,3 @@ app.listen(PORT, () => {
   console.log(`✅ Backend running at http://localhost:${PORT}`);
   refreshCache(); // refresh once on startup
 });
-
